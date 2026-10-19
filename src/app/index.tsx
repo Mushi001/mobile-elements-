@@ -1,98 +1,214 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  Switch,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+} from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
+export default function App() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [age, setAge] = useState('');
+  const [description, setDescription] = useState('');
+  const [gender, setGender] = useState('');
+  const [interests, setInterests] = useState<string[]>([]);
+  const [isStudent, setIsStudent] = useState(false);
+  const [education, setEducation] = useState('');
+
+  function toggleInterest(interest: string) {
+    if (interests.includes(interest)) {
+      setInterests(interests.filter(item => item !== interest));
+    } else {
+      setInterests([...interests, interest]);
+    }
   }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
+
+  
+function handleSubmit() {
+  console.log(`
+Student Registration Details
+----------------------------
+Name: ${name}
+Email: ${email}
+Password: ${'*'.repeat(password.length)}
+Age: ${age}
+Description: ${description}
+Gender: ${gender}
+Interests: ${interests.join(', ')}
+Student: ${isStudent ? 'Yes' : 'No'}
+Education Level: ${education}
+----------------------------
+  `);
 }
 
-export default function HomeScreen() {
+
+  function handleReset() {
+    setName('');
+    setEmail('');
+    setPassword('');
+    setAge('');
+    setDescription('');
+    setGender('');
+    setInterests([]);
+    setIsStudent(false);
+    setEducation('');
+  }
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+    <ScrollView style={styles.container}>
+      <Text style={styles.title}>Student Registration Form</Text>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+      <Text>Name:</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter your name"
+        value={name}
+        onChangeText={setName}
+      />
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
+      <Text>Email:</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter your email"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+
+      <Text>Password:</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter your password"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+
+      <Text>Age:</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter your age"
+        value={age}
+        onChangeText={setAge}
+        keyboardType="numeric"
+      />
+
+      <Text>About yourself:</Text>
+      <TextInput
+        style={[styles.input, styles.multiline]}
+        placeholder="Write a short description"
+        value={description}
+        onChangeText={setDescription}
+        multiline
+      />
+
+      <Text>Gender:</Text>
+      {['Male', 'Female', 'Other'].map(option => (
+        <Pressable
+          key={option}
+          style={styles.option}
+          onPress={() => setGender(option)}
+        >
+          <Text>
+            {gender === option ? '(●)' : '( )'} {option}
+          </Text>
+        </Pressable>
+      ))}
+
+      <Text>Interests:</Text>
+      {['Programming', 'Sports', 'Music'].map(option => (
+        <Pressable
+          key={option}
+          style={styles.option}
+          onPress={() => toggleInterest(option)}
+        >
+          <Text>
+            {interests.includes(option) ? '[✓]' : '[ ]'} {option}
+          </Text>
+        </Pressable>
+      ))}
+
+      <Text>Are you a student?</Text>
+      <View style={styles.switchRow}>
+        <Text>{isStudent ? 'Yes' : 'No'}</Text>
+        <Switch
+          value={isStudent}
+          onValueChange={setIsStudent}
+        />
+      </View>
+
+      <Text>Education Level:</Text>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={education}
+          onValueChange={setEducation}
+        >
+          <Picker.Item label="Select education level" value="" />
+          <Picker.Item
+            label="Secondary School"
+            value="Secondary School"
           />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+          <Picker.Item label="University" value="University" />
+          <Picker.Item label="Other" value="Other" />
+        </Picker>
+      </View>
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+      <View style={styles.button}>
+        <Button title="Submit Form" onPress={handleSubmit} />
+      </View>
+
+      <View style={styles.button}>
+        <Button title="Reset Form" onPress={handleReset} />
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+    padding: 20,
   },
   title: {
-    textAlign: 'center',
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 20,
   },
-  code: {
-    textTransform: 'uppercase',
+  input: {
+    borderWidth: 1,
+    borderColor: '#999',
+    padding: 8,
+    marginTop: 5,
+    marginBottom: 12,
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  multiline: {
+    height: 80,
+    textAlignVertical: 'top',
+  },
+  option: {
+    paddingVertical: 6,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginVertical: 8,
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#999',
+    marginVertical: 8,
+  },
+  button: {
+    marginVertical: 6,
   },
 });
